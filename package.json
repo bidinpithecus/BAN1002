@@ -1,0 +1,26 @@
+{
+  "name": "bus-management",
+  "version": "1.0.0",
+  "description": "a simple bus management system",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node ./build/index.js",
+    "prestart": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bidinpithecus/BAN1002.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bidinpithecus/BAN1002/issues"
+  },
+  "homepage": "https://github.com/bidinpithecus/BAN1002#readme",
+  "dependencies": {
+    "inquirer": "^9.2.6",
+    "postgres": "^3.3.4",
+    "typescript": "^5.0.4"
+  }
+}
