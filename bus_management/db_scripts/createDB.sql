@@ -37,9 +37,7 @@ CREATE TABLE IF NOT EXISTS "main"."route" (
 	"location_start_id" UUID NOT NULL,
 	"location_destiny_id" UUID NOT NULL,
 	"distance" NUMERIC NOT NULL,
-	"category_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
-	FOREIGN KEY ("category_id") REFERENCES "main"."transport_category",
 	FOREIGN KEY ("location_start_id") REFERENCES "main"."location",
 	FOREIGN KEY ("location_destiny_id") REFERENCES "main"."location"
 );
@@ -91,9 +89,10 @@ CREATE TABLE IF NOT EXISTS "main"."ticket" (
 
 CREATE TABLE IF NOT EXISTS "main"."payment" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-	"quantity" NUMERIC NOT NULL,
+	"ticket_id" UUID NOT NULL,
 	"method_id" UUID NOT NULL,
 	"date" TIMESTAMP DEFAULT current_timestamp,
+	"passenger_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method"
 );
