@@ -94,6 +94,7 @@ CREATE TABLE IF NOT EXISTS "main"."payment" (
 	"date" TIMESTAMP DEFAULT current_timestamp,
 	"passenger_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
+	FOREIGN KEY ("ticket_id") REFERENCES "main"."ticket",
 	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method"
 );
 
