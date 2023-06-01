@@ -16,11 +16,18 @@ CREATE TABLE IF NOT EXISTS "main"."staff_position" (
 	"created_at" TIMESTAMP DEFAULT current_timestamp
 );
 
+CREATE TABLE IF NOT EXISTS "main"."payment_method" (
+	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	"method" VARCHAR(50) NOT NULL,
+	"created_at" TIMESTAMP DEFAULT current_timestamp
+)
+
 CREATE TABLE IF NOT EXISTS "main"."location" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"address" VARCHAR(255) NOT NULL,
 	"category_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
+	"is_station" BOOLEAN NOT NULL,
 	FOREIGN KEY ("category_id") REFERENCES "main"."transport_category"
 );
 
@@ -32,9 +39,9 @@ CREATE TABLE IF NOT EXISTS "main"."route" (
 	"distance" NUMERIC NOT NULL,
 	"category_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
-	FOREIGN KEY ("category_id") REFERENCES "main"."transport_category"
-	FOREIGN KEY ("start_id") REFERENCES "main"."location"
-	FOREIGN KEY ("destiny_id") REFERENCES "main"."location"
+	FOREIGN KEY ("category_id") REFERENCES "main"."transport_category",
+	FOREIGN KEY ("location_start_id") REFERENCES "main"."location",
+	FOREIGN KEY ("location_destiny_id") REFERENCES "main"."location"
 );
 
 CREATE TABLE IF NOT EXISTS "main"."vehicle" (
@@ -67,10 +74,29 @@ CREATE TABLE IF NOT EXISTS "main"."passenger" (
 	"created_at" TIMESTAMP DEFAULT current_timestamp
 );
 
+CREATE TABLE IF NOT EXISTS "main"."transportation" (
+	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	"date" DATETIME NOT NULL,
+	"passenger_id" UUID NOT NULL,
+	"vehicle_id" UUID NOT NULL,
+	"created_at" TIMESTAMP DEFAULT current_timestamp,
+	FOREIGN KEY ("vehicle_id") REFERENCES "main"."vehicle",
+	FOREIGN KEY ("passenger_id") REFERENCES "main"."passenger"
+);
+
 CREATE TABLE IF NOT EXISTS "main"."ticket" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"price" NUMERIC NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp
+);
+
+CREATE TABLE IF NOT EXISTS "main"."payment" (
+	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	"quantity" NUMERIC NOT NULL,
+	"method_id" UUID NOT NULL,
+	"date" TIMESTAMP DEFAULT current_timestamp,
+	"created_at" TIMESTAMP DEFAULT current_timestamp
+	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method"
 );
 
 CREATE TABLE IF NOT EXISTS "main"."staff" (
@@ -79,6 +105,17 @@ CREATE TABLE IF NOT EXISTS "main"."staff" (
 	"position_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("position_id") REFERENCES "main"."staff_position"
+);
+
+CREATE TABLE IF NOT EXISTS "main"."staff_vehicle" (
+	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	"vehicle_id" UUID NOT NULL,
+	"staff_id" UUID NOT NULL,
+	"shift_start" TIMESTAMP NOT NULL,
+	"shift_finish" TIMESTAMP NOT NULL,
+	"created_at" TIMESTAMP DEFAULT current_timestamp,
+	FOREIGN KEY ("vehicle_id") REFERENCES "main"."vehicle",
+	FOREIGN KEY ("staff_id") REFERENCES "main"."staff"
 );
 
 CREATE TABLE IF NOT EXISTS "main"."feedback" (
