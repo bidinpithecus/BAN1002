@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS "main"."payment_method" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"method" VARCHAR(50) NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp
-)
+);
 
 CREATE TABLE IF NOT EXISTS "main"."location" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -68,15 +68,14 @@ CREATE TABLE IF NOT EXISTS "main"."vehicle_route" (
 CREATE TABLE IF NOT EXISTS "main"."passenger" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"name" VARCHAR(50) NOT NULL,
-	"phone" VARCHAR(25) UNIQUE NOT NULL,
 	"email" VARCHAR(128) NOT NULL,
-	"phone" VARCHAR(20) NOT NULL,
+	"phone" VARCHAR(20) UNIQUE NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp
 );
 
 CREATE TABLE IF NOT EXISTS "main"."transportation" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-	"date" DATETIME NOT NULL,
+	"date" DATE NOT NULL,
 	"passenger_id" UUID NOT NULL,
 	"vehicle_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
@@ -95,7 +94,7 @@ CREATE TABLE IF NOT EXISTS "main"."payment" (
 	"quantity" NUMERIC NOT NULL,
 	"method_id" UUID NOT NULL,
 	"date" TIMESTAMP DEFAULT current_timestamp,
-	"created_at" TIMESTAMP DEFAULT current_timestamp
+	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method"
 );
 
@@ -125,5 +124,5 @@ CREATE TABLE IF NOT EXISTS "main"."feedback" (
 	"comment" VARCHAR(255),
 	"rating" NUMERIC NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
-	FOREIGN KEY ("passenger_id") REFERENCES "main"."s"
+	FOREIGN KEY ("passenger_id") REFERENCES "main"."passenger"
 );
