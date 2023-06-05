@@ -16,12 +16,6 @@ CREATE TABLE IF NOT EXISTS "main"."staff_position" (
 	"created_at" TIMESTAMP DEFAULT current_timestamp
 );
 
-CREATE TABLE IF NOT EXISTS "main"."payment_method" (
-	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-	"method" VARCHAR(50) NOT NULL,
-	"created_at" TIMESTAMP DEFAULT current_timestamp
-);
-
 CREATE TABLE IF NOT EXISTS "main"."location" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"address" VARCHAR(255) NOT NULL,
@@ -95,7 +89,8 @@ CREATE TABLE IF NOT EXISTS "main"."payment" (
 	"passenger_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("ticket_id") REFERENCES "main"."ticket",
-	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method"
+	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method",
+	FOREIGN KEY ("passenger_id") REFERENCES "main"."passenger"
 );
 
 CREATE TABLE IF NOT EXISTS "main"."staff" (
