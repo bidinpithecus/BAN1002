@@ -84,12 +84,11 @@ CREATE TABLE IF NOT EXISTS "main"."ticket" (
 CREATE TABLE IF NOT EXISTS "main"."payment" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
 	"ticket_id" UUID NOT NULL,
-	"method_id" UUID NOT NULL,
+	"method" VARCHAR(50) NOT NULL,
 	"date" TIMESTAMP DEFAULT current_timestamp,
 	"passenger_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("ticket_id") REFERENCES "main"."ticket",
-	FOREIGN KEY ("method_id") REFERENCES "main"."payment_method",
 	FOREIGN KEY ("passenger_id") REFERENCES "main"."passenger"
 );
 

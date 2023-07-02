@@ -19,8 +19,13 @@
   },
   "homepage": "https://github.com/bidinpithecus/BAN1002#readme",
   "dependencies": {
-    "inquirer": "^9.2.6",
-    "postgres": "^3.3.4",
-    "typescript": "^5.0.4"
+    "dotenv": "^16.3.1",
+    "inquirer": "^9.2.7",
+    "postgres": "^3.3.5",
+    "typescript": "^5.1.3"
+  },
+  "devDependencies": {
+    "@types/inquirer": "^9.0.3",
+    "@types/node": "^20.3.2"
   }
 }
