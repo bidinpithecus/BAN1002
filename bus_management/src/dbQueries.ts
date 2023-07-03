@@ -37,6 +37,17 @@ export async function getLocations(): Promise<Location[]> {
 	}
 }
 
+export async function getStations(): Promise<Location[]> {
+	try {
+		const locations = await sql<Location[]>`
+			SELECT * FROM main.location WHERE is_station = true
+		`;
+		return locations;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
 export async function getPassengers(): Promise<Passenger[]> {
 	try {
 		const passengers = await sql<Passenger[]>`
@@ -162,6 +173,28 @@ export async function getLongestRoutes() : Promise<Route[]> {
 	try {
 		const routes = await sql<Route[]>`
 			SELECT * FROM main.route WHERE distance = (SELECT MAX(distance) FROM main.route)
+		`;
+		return routes;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getShortestRoutes() : Promise<Route[]> {
+	try {
+		const routes = await sql<Route[]>`
+			SELECT * FROM main.route WHERE distance = (SELECT MIN(distance) FROM main.route)
+		`;
+		return routes;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getPassengersWithFeedback() : Promise<Passenger[]> {
+	try {
+		const routes = await sql<Passenger[]>`
+			SELECT DISTINCT * FROM main.passenger JOIN main.feedback ON main.passenger.id = main.feedback.passenger_id
 		`;
 		return routes;
 	} catch (error) {
