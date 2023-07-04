@@ -1,5 +1,21 @@
-import { getRoutes, getLongestRoutes, getShortestRoutes, getLocations, getStations, getPassengers, getPassengersWithFeedback, getStaff, getVehicles } from "./dbQueries";
+import { getRoutes, getLongestRoutes, getShortestRoutes, getLocations, getStations, getPassengers, getPassengersWithFeedback, getStaff, getVehicles, insertTransportCategory, insertStaffPosition, getTransportCategories, insertLocation, insertRoute, insertVehicle, getTransportations } from "./dbQueries";
 import { closeConnection } from "./dbConnection";
+import {
+	Feedback,
+	Location,
+	Passenger,
+	Payment,
+	Route,
+	Staff,
+	StaffPosition,
+	StaffVehicle,
+	Ticket,
+	TransportCategory,
+	Transportation,
+	Vehicle,
+	VehicleRoute,
+} from "./dbTypes";
+import {v4 as uuidv4} from 'uuid'
 import * as readline from "readline";
 
 function clearScreen(session: string) {
@@ -47,6 +63,7 @@ async function menuGet(): Promise<void> {
 		secondOption = parseInt(secondAnswer);
 		switch (secondOption) {
 		case 0:
+		default:
 			break;
 		case 1:
 			try {
@@ -233,11 +250,300 @@ async function menuGet(): Promise<void> {
 			resolve();
 		});
 	});
-	
 }
 
 async function menuInsert(): Promise<void> {
+	let nameAnswer : string;
+	let descriptionAnswer : string;
+	let salaryAnswer : string;
+	let addressAnswer: string;
+	let categoryIndexAnswer : string;
+	let distanceAnswer: string;
+	let isStationAnswer: string;
+	let categoryIndex : number;
+	const categories: TransportCategory[] = await getTransportCategories();
+	const locations = await getLocations();
+	clearScreen("Inserção de dados");
+	let option: number = 1;
+	const answer: string = await new Promise<string>((resolve) => {
+		rl.question(
+			"\tVoltar? Digite 0.\n\tInserir categorias de transporte? Digite 1.\n\tInserir cargos? Digite 2.\n\tInserir paradas? Digite 3\n\tInserir Rotas? Digite 4\n\tInserir veículos? Digite 5.\n\tInserir passageiros? Digite 6.\n\tInserir bilhete? Digite 7.\n\tInserir pagamento? Digite 8.\n\tInserir funcionário? Digite 9.\n\tInserir feedback? Digite 10.\n\tInserir rotas de veículos? Digite 11.\n\tInserir o transporte de um passageiro? Digite 12.\n\tInserir turnos de funcionários? Digite 13.\n\t", (input) => {
+				resolve(input);
+			}
+		);
+	});
 
+	option = parseInt(answer);
+	switch(option) {
+	// Exit
+	case 0:
+	default:
+		return;
+	// Transport category
+    case 1:
+		const answer: string = await new Promise<string>((resolve) => {
+			rl.question("\n\tNome: ", (input) => {
+				resolve(input);
+			});
+		});
+
+		const created = await insertTransportCategory(answer);
+		console.log(`\n\tCategoria criada:\n\t\tId: ${created[0].id}\n\t\tNome: ${created[0].name}`);
+		break;
+    // Staff position
+	case 2:
+		const staffPosition: StaffPosition = {
+			id: "",
+			name: "",
+			description: "",
+			salary: 0,
+			created_at: new Date(),
+		};
+	  
+		nameAnswer = await new Promise<string>((resolve) => {
+			rl.question("\n\tNome: ", (input) => {
+				resolve(input);
+			});
+		});
+		staffPosition.name = nameAnswer;
+	  
+		descriptionAnswer = await new Promise<string>((resolve) => {
+			rl.question("\n\tDescrição: ", (input) => {
+				resolve(input);
+			});
+		});
+		staffPosition.description = descriptionAnswer;
+	  
+		salaryAnswer = await new Promise<string>((resolve) => {
+			rl.question("\n\tSalário: ", (input) => {
+				resolve(input);
+			});
+		});
+		staffPosition.salary = parseFloat(salaryAnswer);
+	  
+		const createdPosition = await insertStaffPosition(staffPosition);
+		console.log(
+		  	`\n\tCargo criado:\n\t\tId: ${createdPosition[0].id}\n\t\tNome: ${createdPosition[0].name}`
+		);
+		break;
+	// Location
+	case 3:
+		const location: Location = {
+			id: "",
+			address: "",
+			category_id: "",
+			created_at: new Date(),
+			is_station: false,
+		};
+
+		addressAnswer = await new Promise<string>((resolve) => {
+			rl.question("\n\tEndereço: ", (input) => {
+				resolve(input);
+			});
+		});
+		location.address = addressAnswer;
+
+		// Fetch available category_ids from the database
+
+		console.log("\nCategorias:");
+		categories.forEach((category, index) => {
+		  	console.log(`\t[${index + 1}] ID: ${category.id}\tName: ${category.name}`);
+		});
+
+		categoryIndexAnswer = await new Promise<string>((resolve) => {
+			rl.question("Insira o índice da categoria para adicioná-la: ", (input) => {
+				resolve(input);
+			});
+		});
+
+		categoryIndex = parseInt(categoryIndexAnswer) - 1;
+		if (isNaN(categoryIndex) || categoryIndex < 0 || categoryIndex >= categories.length) {
+			console.log("Índice inválido!");
+			break;
+		}
+
+		location.category_id = categories[categoryIndex].id;
+
+		isStationAnswer = await new Promise<string>((resolve) => {
+			rl.question("Is it a station? (true/false): ", (input) => {
+				resolve(input);
+			});
+		});
+		location.is_station = (isStationAnswer.toLowerCase() === "true");
+
+		const createdLocation = await insertLocation(location);
+		console.log(
+		  	`\n\tParada criada:\n\t\tId: ${createdLocation[0].id}\n\t\tNome: ${createdLocation[0].address}`
+		);
+		break;	  
+    // Route
+	case 4:
+		const route: Route = {
+			id: "",
+			name: "",
+			location_start_id: "",
+			location_destiny_id: "",
+			distance: 0,
+			created_at: new Date(),
+		};
+	  
+		nameAnswer = await new Promise<string>((resolve) => {
+			rl.question("Nome: ", (input) => {
+				resolve(input);
+			});
+		});
+		route.name = nameAnswer;
+
+		// Fetch available location_ids from the database
+
+		console.log("\nLocalizações:");
+		locations.forEach((location, index) => {
+		  	console.log(`\t[${index + 1}] Id: ${location.id}\tNome: ${location.address}`);
+		});
+		
+		const startLocationIndexAnswer: string = await new Promise<string>((resolve) => {
+			rl.question("Insira o índice da localização inicial: ", (input) => {
+				resolve(input);
+			});
+		});
+		
+		const startLocationIndex = parseInt(startLocationIndexAnswer) - 1;
+		if (isNaN(startLocationIndex) || startLocationIndex < 0 || startLocationIndex >= locations.length) {
+			console.log("Índice inválido!");
+			break;
+		}
+		
+		route.location_start_id = locations[startLocationIndex].id;
+	  
+		const destinyLocationIndexAnswer: string = await new Promise<string>((resolve) => {
+			rl.question("Insira o índice da localização final: ", (input) => {
+				resolve(input);
+			});
+		});
+		
+		const destinyLocationIndex = parseInt(destinyLocationIndexAnswer) - 1;
+		if (isNaN(destinyLocationIndex) || destinyLocationIndex < 0 || destinyLocationIndex >= locations.length) {
+			console.log("Índice inválido!");
+			break;
+		}
+		
+		route.location_destiny_id = locations[destinyLocationIndex].id;
+	  
+		distanceAnswer = await new Promise<string>((resolve) => {
+			rl.question("Distância: ", (input) => {
+				resolve(input);
+			});
+		});
+		route.distance = parseFloat(distanceAnswer);
+	  
+		const createdRoute = await insertRoute(route);
+		console.log(
+		  	`\n\tRoute created:\n\t\tID: ${createdRoute[0].id}\n\t\tName: ${createdRoute[0].name}`
+		);
+		break;
+    // Vehicle
+	case 5:
+		const vehicle: Vehicle = {
+		  id: "",
+		  category_id: "",
+		  manufacturer: "",
+		  model: "",
+		  year: 0,
+		  capacity: 0,
+		  created_at: new Date(),
+		};
+	  
+		const manufacturerAnswer: string = await new Promise<string>((resolve) => {
+		  rl.question("Enter the manufacturer of the vehicle: ", (input) => {
+			resolve(input);
+		  });
+		});
+		vehicle.manufacturer = manufacturerAnswer;
+	  
+		const modelAnswer: string = await new Promise<string>((resolve) => {
+		  rl.question("Enter the model of the vehicle: ", (input) => {
+			resolve(input);
+		  });
+		});
+		vehicle.model = modelAnswer;
+	  
+		const yearAnswer: string = await new Promise<string>((resolve) => {
+		  rl.question("Enter the year of the vehicle: ", (input) => {
+			resolve(input);
+		  });
+		});
+		vehicle.year = parseInt(yearAnswer);
+	  
+		const capacityAnswer: string = await new Promise<string>((resolve) => {
+		  rl.question("Enter the capacity of the vehicle: ", (input) => {
+			resolve(input);
+		  });
+		});
+		vehicle.capacity = parseInt(capacityAnswer);
+	  
+		console.log("\nAvailable Category IDs:");
+		categories.forEach((category, index) => {
+		  console.log(`\t[${index + 1}] ID: ${category.id}\tName: ${category.name}`);
+		});
+	  
+		categoryIndexAnswer = await new Promise<string>((resolve) => {
+		  rl.question("Enter the index of the category ID for the vehicle: ", (input) => {
+			resolve(input);
+		  });
+		});
+	  
+		categoryIndex = parseInt(categoryIndexAnswer) - 1;
+		if (isNaN(categoryIndex) || categoryIndex < 0 || categoryIndex >= categories.length) {
+		  console.log("Invalid category index!");
+		  break;
+		}
+	  
+		vehicle.category_id = categories[categoryIndex].id;
+	  
+		const createdVehicle = await insertVehicle(vehicle);
+		console.log(
+		  `\n\tVehicle created:\n\t\tID: ${createdVehicle[0].id}\n\t\tManufacturer: ${createdVehicle[0].manufacturer}\n\t\tModel: ${createdVehicle[0].model}`
+		);
+		break;
+	  
+    // Passenger
+    // case 6:
+	// 	await insertPassenger();
+	// 	break;
+    // // Ticket
+    // case 7:
+	// 	await insertTicket();
+	// 	break;
+    // // Payment
+    // case 8:
+	// 	await insertPayment();
+	// 	break;
+    // // Staff
+    // case 9:
+	// 	await insertStaff();
+	// 	break;
+    // // Feedback
+    // case 10:
+	// 	await insertFeedback();
+	// 	break;
+    // // Vehicle route
+    // case 11:
+	// 	await insertVehicleRoute();
+	// 	break;
+    // // Transportation
+    // case 12:
+	// 	await insertTransportation();
+	// 	break;
+    // // Staff vehicle
+    // case 13:
+	// 	await insertStaffVehicle();
+	// 	break;
+	}
+	await new Promise<void>((resolve) => {
+		rl.question("Press Enter to continue...", () => {
+			resolve();
+		});
+	});
 }
 
 async function menu(): Promise<void> {

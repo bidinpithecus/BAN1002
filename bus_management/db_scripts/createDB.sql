@@ -48,8 +48,8 @@ CREATE TABLE IF NOT EXISTS "main"."vehicle" (
 
 CREATE TABLE IF NOT EXISTS "main"."vehicle_route" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-	"vehicle_id" UUID,
-	"route_id" UUID,
+	"vehicle_id" UUID NOT NULL,
+	"route_id" UUID NOT NULL,
 	"time_init" TIME NOT NULL,
 	"time_end" TIME NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,

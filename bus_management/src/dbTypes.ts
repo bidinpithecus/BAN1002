@@ -1,24 +1,23 @@
-import { UUID } from "crypto";
-
 export interface Feedback {
-	id: UUID;
-	passenger_id: UUID;
+	id: string;
+	passenger_id: string;
 	date: Date;
 	comment: string | null;
 	rating: number;
 	created_at: Date;
+	
 }
 
 export interface Location {
-	id: UUID;
+	id: string;
 	address: string;
-	category_id: UUID;
+	category_id: string;
 	created_at: Date;
 	is_station: boolean;
 }
   
 export interface Passenger {
-	id: UUID;
+	id: string;
 	name: string;
 	email: string;
 	phone: string;
@@ -26,32 +25,32 @@ export interface Passenger {
 }
   
 export interface Payment {
-	id: UUID;
-	ticket_id: UUID;
+	id: string;
+	ticket_id: string;
 	method: string;
 	date: Date;
-	passenger_id: UUID;
+	passenger_id: string;
 	created_at: Date;
 }
   
 export interface Route {
-	id: UUID;
+	id: string;
 	name: string;
-	location_start_id: UUID;
-	location_destiny_id: UUID;
+	location_start_id: string;
+	location_destiny_id: string;
 	distance: number;
 	created_at: Date;
 }
   
 export interface Staff {
-	id: UUID;
+	id: string;
 	name: string;
-	position_id: UUID;
+	position_id: string;
 	created_at: Date;
 }
   
 export interface StaffPosition {
-	id: UUID;
+	id: string;
 	name: string;
 	description: string;
 	salary: number;
@@ -59,37 +58,37 @@ export interface StaffPosition {
 }
   
 export interface StaffVehicle {
-	id: UUID;
-	vehicle_id: UUID;
-	staff_id: UUID;
+	id: string;
+	vehicle_id: string;
+	staff_id: string;
 	shift_start: Date;
 	shift_finish: Date;
 	created_at: Date;
 }
   
 export interface Ticket {
-	id: UUID;
+	id: string;
 	price: number;
 	created_at: Date;
 }
   
 export interface TransportCategory {
-	id: UUID;
+	id: string;
 	name: string;
 	created_at: Date;
 }
   
 export interface Transportation {
-	id: UUID;
+	id: string;
 	date: Date;
-	passenger_id: UUID;
-	vehicle_id: UUID;
+	passenger_id: string;
+	vehicle_id: string;
 	created_at: Date;
 }
   
 export interface Vehicle {
-	id: UUID;
-	category_id: UUID;
+	id: string;
+	category_id: string;
 	manufacturer: string;
 	model: string;
 	year: number;
@@ -98,9 +97,9 @@ export interface Vehicle {
 }
   
 export interface VehicleRoute {
-	id: UUID;
-	vehicle_id: UUID;
-	route_id: UUID;
+	id: string;
+	vehicle_id: string;
+	route_id: string;
 	time_init: Date;
 	time_end: Date;
 	created_at: Date;

@@ -1,4 +1,5 @@
 import { sql } from "./dbConnection";
+import * as readline from "readline";
 import {
 	Feedback,
 	Location,
@@ -197,6 +198,81 @@ export async function getPassengersWithFeedback() : Promise<Passenger[]> {
 			SELECT DISTINCT * FROM main.passenger JOIN main.feedback ON main.passenger.id = main.feedback.passenger_id
 		`;
 		return routes;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function insertTransportCategory(category : string): Promise<TransportCategory[]> {
+	try {
+		const transportCategory = await sql<TransportCategory[]>`
+			INSERT INTO main.transport_category(name) VALUES(${category}) RETURNING id, name, created_at
+		`;
+		return transportCategory;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function insertStaffPosition(staffPosition: StaffPosition): Promise<StaffPosition[]> {
+	try {
+		const insertedStaffPosition = await sql<StaffPosition[]>`
+			INSERT INTO main.staff_position(name, description, salary) VALUES(${staffPosition.name}, ${staffPosition.description}, ${staffPosition.salary}) RETURNING id, name
+		`;
+		return insertedStaffPosition;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function insertLocation(location: Location): Promise<Location[]> {
+	try {
+		const insertedLocation = await sql<Location[]>`
+		INSERT INTO main.location(address, category_id, is_station) VALUES(${location.address}, ${location.category_id}, ${location.is_station}) RETURNING id, address
+		`;
+		return insertedLocation;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function insertRoute(route: Route): Promise<Route[]> {
+	try {
+		const insertedRoute = await sql<Route[]>`
+			INSERT INTO main.route(name, location_start_id, location_destiny_id, distance, created_at)
+			VALUES (${route.name}, ${route.location_start_id}, 
+			${route.location_destiny_id}, ${route.distance}, ${route.created_at})
+			RETURNING id, name
+		`;
+		return insertedRoute;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+  
+export async function insertVehicle(vehicle: Vehicle): Promise<Vehicle[]> {
+	try {
+		const insertedVehicle = await sql<Vehicle[]>`
+			INSERT INTO main.vehicle(category_id, manufacturer, model, year, capacity, created_at)
+			VALUES (${vehicle.category_id}, ${vehicle.manufacturer}, 
+			${vehicle.model}, ${vehicle.year}, ${vehicle.capacity}, ${vehicle.created_at})
+			RETURNING id, manufacturer
+		`;
+		return insertedVehicle;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function insertPassenger(passenger: Passenger): Promise<Passenger[]> {
+	try {
+		const insertedPassenger = await sql<Passenger[]>`
+			INSERT INTO main.passenger(name, email, phone, created_at)
+			VALUES (${passenger.name}, ${passenger.email}, 
+			${passenger.phone}, ${passenger.created_at})
+			RETURNING id, name
+		`;
+		return insertedPassenger;
 	} catch (error) {
 		throw new Error("Error executing database query: " + error);
 	}
