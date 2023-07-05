@@ -5,7 +5,6 @@ export interface Feedback {
 	comment: string | null;
 	rating: number;
 	created_at: Date;
-	
 }
 
 export interface Location {
@@ -15,7 +14,7 @@ export interface Location {
 	created_at: Date;
 	is_station: boolean;
 }
-  
+
 export interface Passenger {
 	id: string;
 	name: string;
@@ -23,7 +22,7 @@ export interface Passenger {
 	phone: string;
 	created_at: Date;
 }
-  
+
 export interface Payment {
 	id: string;
 	ticket_id: string;
@@ -32,7 +31,7 @@ export interface Payment {
 	passenger_id: string;
 	created_at: Date;
 }
-  
+
 export interface Route {
 	id: string;
 	name: string;
@@ -41,14 +40,14 @@ export interface Route {
 	distance: number;
 	created_at: Date;
 }
-  
+
 export interface Staff {
 	id: string;
 	name: string;
 	position_id: string;
 	created_at: Date;
 }
-  
+
 export interface StaffPosition {
 	id: string;
 	name: string;
@@ -56,7 +55,7 @@ export interface StaffPosition {
 	salary: number;
 	created_at: Date;
 }
-  
+
 export interface StaffVehicle {
 	id: string;
 	vehicle_id: string;
@@ -65,19 +64,19 @@ export interface StaffVehicle {
 	shift_finish: Date;
 	created_at: Date;
 }
-  
+
 export interface Ticket {
 	id: string;
 	price: number;
 	created_at: Date;
 }
-  
+
 export interface TransportCategory {
 	id: string;
 	name: string;
 	created_at: Date;
 }
-  
+
 export interface Transportation {
 	id: string;
 	date: Date;
@@ -85,7 +84,7 @@ export interface Transportation {
 	vehicle_id: string;
 	created_at: Date;
 }
-  
+
 export interface Vehicle {
 	id: string;
 	category_id: string;
@@ -95,7 +94,7 @@ export interface Vehicle {
 	capacity: number;
 	created_at: Date;
 }
-  
+
 export interface VehicleRoute {
 	id: string;
 	vehicle_id: string;
@@ -104,4 +103,3 @@ export interface VehicleRoute {
 	time_end: Date;
 	created_at: Date;
 }
-  

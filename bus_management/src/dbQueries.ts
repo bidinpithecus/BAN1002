@@ -1,5 +1,5 @@
 import { sql } from "./dbConnection";
-import * as readline from "readline";
+import {v4 as uuidv4} from 'uuid'
 import {
 	Feedback,
 	Location,
@@ -203,6 +203,33 @@ export async function getPassengersWithFeedback() : Promise<Passenger[]> {
 	}
 }
 
+export async function getLocationsOf(categoryId: string): Promise<Location[]> {
+	try {
+		const locations = await sql<Location[]>`
+			SELECT * FROM main.location WHERE category_id = ${categoryId}
+		`;
+		return locations;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+// id: string;
+// name: string;
+// location_start_id: string;
+// location_destiny_id: string;
+// distance: number;
+// created_at: Date;
+export async function getRoutesOf(categoryId: string): Promise<Route[]> {
+	try {
+		const routes = await sql<Route[]>`
+			SELECT main.route.id, main.route.name, main.route.location_start_id, main.route.location_destiny_id, main.route.distance, main.route.created_at, main.location.id AS locId, main.location.category_id FROM main.route JOIN main.location ON main.route.location_start_id = main.location.id WHERE main.location.category_id = ${categoryId}
+		`;
+		return routes;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
 export async function insertTransportCategory(category : string): Promise<TransportCategory[]> {
 	try {
 		const transportCategory = await sql<TransportCategory[]>`
@@ -239,9 +266,9 @@ export async function insertLocation(location: Location): Promise<Location[]> {
 export async function insertRoute(route: Route): Promise<Route[]> {
 	try {
 		const insertedRoute = await sql<Route[]>`
-			INSERT INTO main.route(name, location_start_id, location_destiny_id, distance, created_at)
-			VALUES (${route.name}, ${route.location_start_id}, 
-			${route.location_destiny_id}, ${route.distance}, ${route.created_at})
+			INSERT INTO main.route(name, location_start_id, location_destiny_id, distance)
+			VALUES (${route.name}, ${route.location_start_id},
+			${route.location_destiny_id}, ${route.distance})
 			RETURNING id, name
 		`;
 		return insertedRoute;
@@ -249,14 +276,14 @@ export async function insertRoute(route: Route): Promise<Route[]> {
 		throw new Error("Error executing database query: " + error);
 	}
 }
-  
+
 export async function insertVehicle(vehicle: Vehicle): Promise<Vehicle[]> {
 	try {
 		const insertedVehicle = await sql<Vehicle[]>`
-			INSERT INTO main.vehicle(category_id, manufacturer, model, year, capacity, created_at)
-			VALUES (${vehicle.category_id}, ${vehicle.manufacturer}, 
-			${vehicle.model}, ${vehicle.year}, ${vehicle.capacity}, ${vehicle.created_at})
-			RETURNING id, manufacturer
+			INSERT INTO main.vehicle(category_id, manufacturer, model, year, capacity)
+			VALUES (${vehicle.category_id}, ${vehicle.manufacturer},
+			${vehicle.model}, ${vehicle.year}, ${vehicle.capacity})
+			RETURNING id, manufacturer, model
 		`;
 		return insertedVehicle;
 	} catch (error) {
@@ -267,10 +294,10 @@ export async function insertVehicle(vehicle: Vehicle): Promise<Vehicle[]> {
 export async function insertPassenger(passenger: Passenger): Promise<Passenger[]> {
 	try {
 		const insertedPassenger = await sql<Passenger[]>`
-			INSERT INTO main.passenger(name, email, phone, created_at)
-			VALUES (${passenger.name}, ${passenger.email}, 
-			${passenger.phone}, ${passenger.created_at})
-			RETURNING id, name
+			INSERT INTO main.passenger(name, email, phone)
+			VALUES (${passenger.name}, ${passenger.email},
+			${passenger.phone})
+			RETURNING id, name, email, phone
 		`;
 		return insertedPassenger;
 	} catch (error) {
@@ -278,55 +305,98 @@ export async function insertPassenger(passenger: Passenger): Promise<Passenger[]
 	}
 }
 
-/*
-Liste todas as rotas ordenadas por distância em ordem decrescente
-	SELECT * FROM main.route ORDER BY distance DESC;
+export async function insertTicket(ticket: Ticket): Promise<Ticket[]> {
+	try {
+		const insertedTicket = await sql<Ticket[]>`
+		INSERT INTO main.ticket (price)
+		VALUES (${ticket.price})
+		RETURNING *
+		`;
+		return insertedTicket;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Qual é o número total de passageiros que deram feedback?
-	SELECT COUNT(DISTINCT passenger_id) AS total_passengers FROM main.feedback;
+export async function insertPayment(payment: Payment, quantity: number): Promise<Payment[]> {
+	try {
+		const insertedPayments: Payment[] = [];
+		for (let i = 0; i < quantity; i++) {
+		const insertedPayment = await sql<Payment[]>`
+			INSERT INTO main.payment (ticket_id, method, date, passenger_id)
+			VALUES (${payment.ticket_id}, ${payment.method}, ${payment.date}, ${payment.passenger_id})
+			RETURNING *
+		`;
 
-Liste o nome e a descrição de todas as posições de funcionários, agrupadas por categoria de transporte.
-	SELECT tc.name AS category_name, sp.name AS position_name, sp.description
-	FROM main.transport_category tc
-	INNER JOIN main.staff_position sp ON tc.id = sp.category_id
-	ORDER BY tc.name;
+		insertedPayments.push(...insertedPayment);
+		}
+		return insertedPayments;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Liste todas as rotas em que a distância é maior que a média das distâncias de todas as rotas.
-	SELECT *
-	FROM main.route
-	WHERE distance > (SELECT AVG(distance) FROM main.route);
+export async function insertStaff(staff: Staff): Promise<Staff[]> {
+	try {
+		const insertedStaff = await sql<Staff[]>`
+		INSERT INTO main.staff (name, position_id)
+		VALUES (${staff.name}, ${staff.position_id})
+		RETURNING *
+		`;
+		return insertedStaff;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Qual é o veículo com a maior capacidade?
-	SELECT *
-	FROM main.vehicle
-	WHERE capacity = (SELECT MAX(capacity) FROM main.vehicle);
+export async function insertFeedback(feedback: Feedback): Promise<Feedback[]> {
+	try {
+		const insertedFeedback = await sql<Feedback[]>`
+		INSERT INTO main.feedback (passenger_id, date, comment, rating)
+		VALUES (${feedback.passenger_id}, ${feedback.date}, ${feedback.comment}, ${feedback.rating})
+		RETURNING *
+		`;
+		return insertedFeedback;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Liste todos os passageiros que fizeram uma viagem em um veículo fabricado no ano de 2023.
-	SELECT p.*
-	FROM main.passenger p
-	INNER JOIN main.transportation t ON p.id = t.passenger_id
-	INNER JOIN main.vehicle v ON t.vehicle_id = v.id
-	WHERE v.year = 2023;
+export async function insertVehicleRoute(vehicleRoute: VehicleRoute): Promise<VehicleRoute[]> {
+	try {
+		const insertedVehicleRoute = await sql<VehicleRoute[]>`
+		INSERT INTO main.vehicle_route (vehicle_id, route_id, time_init, time_end)
+		VALUES (${vehicleRoute.vehicle_id}, ${vehicleRoute.route_id}, ${vehicleRoute.time_init}, ${vehicleRoute.time_end})
+		RETURNING *
+		`;
+		return insertedVehicleRoute;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Qual é o salário médio dos funcionários que trabalham com veículos fabricados pela empresa "ABC Motors"?
-	SELECT AVG(sp.salary) AS average_salary
-	FROM main.staff_position sp
-	INNER JOIN main.staff s ON sp.id = s.position_id
-	INNER JOIN main.staff_vehicle sv ON s.id = sv.staff_id
-	INNER JOIN main.vehicle v ON sv.vehicle_id = v.id
-	WHERE v.manufacturer = 'ABC Motors';
+export async function insertTransportation(transportation: Transportation): Promise<Transportation[]> {
+	try {
+		const insertedTransportation = await sql<Transportation[]>`
+		INSERT INTO main.transportation (date, passenger_id, vehicle_id)
+		VALUES (${transportation.date}, ${transportation.passenger_id}, ${transportation.vehicle_id})
+		RETURNING *
+		`;
+		return insertedTransportation;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
 
-Liste todas as rotas juntamente com o nome do veículo e o nome do motorista que está associado a cada rota.
-	SELECT r.name AS route_name, v.manufacturer AS vehicle_manufacturer, s.name AS driver_name
-	FROM main.route r
-	INNER JOIN main.vehicle_route vr ON r.id = vr.route_id
-	INNER JOIN main.vehicle v ON vr.vehicle_id = v.id
-	INNER JOIN main.staff_vehicle sv ON v.id = sv.vehicle_id
-	INNER JOIN main.staff s ON sv.staff_id = s.id;
-
-Qual é o número total de passageiros que fizeram uma viagem usando um veículo fabricado no ano de 2022?
-	SELECT COUNT(DISTINCT t.passenger_id) AS total_passengers
-	FROM main.transportation t
-	INNER JOIN main.vehicle v ON t.vehicle_id = v.id
-	WHERE v.year = 2022;
-*/
+export async function insertStaffVehicle(staffVehicle: StaffVehicle): Promise<StaffVehicle[]> {
+	try {
+		const insertedStaffVehicle = await sql<StaffVehicle[]>`
+		INSERT INTO main.staff_vehicle (vehicle_id, staff_id, shift_start, shift_finish)
+		VALUES (${staffVehicle.vehicle_id}, ${staffVehicle.staff_id}, ${staffVehicle.shift_start}, ${staffVehicle.shift_finish})
+		RETURNING *
+		`;
+		return insertedStaffVehicle;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
