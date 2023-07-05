@@ -1,4 +1,4 @@
-import { getRoutes, getLongestRoutes, getShortestRoutes, getLocations, getStations, getPassengers, getPassengersWithFeedback, getStaff, getVehicles, insertTransportCategory, insertStaffPosition, getTransportCategories, insertLocation, insertRoute, insertVehicle, getTransportations, insertPassenger, insertTicket, insertPayment, insertStaff, insertVehicleRoute, insertTransportation, getStaffPositions, insertStaffVehicle, insertFeedback, getTickets, getLocationsOf, getRoutesOf } from "./dbQueries";
+import { getRoutes, getLongestRoutes, getShortestRoutes, getLocations, getStations, getPassengers, getPassengersWithFeedback, getStaff, getVehicles, insertTransportCategory, insertStaffPosition, getTransportCategories, insertLocation, insertRoute, insertVehicle, getTransportations, insertPassenger, insertTicket, insertPayment, insertStaff, insertVehicleRoute, insertTransportation, getStaffPositions, insertStaffVehicle, insertFeedback, getTickets, getLocationsOf, getRoutesOf, getPassengersWithMaxTravels, getDriversOnlyOfBus, getEmployeesWithLongTravels, getVehiclesWithMaxTravels, getTrainsOfAllStations } from "./dbQueries";
 import { closeConnection } from "./dbConnection";
 import {
 	Feedback,
@@ -133,7 +133,7 @@ async function menuGet(): Promise<void> {
 		break;
 	// Passengers
 	case 3:
-		secondAnswer = await new Promise<string>(resolve => rl.question("\n\t\tVoltar? Digite 0.\n\t\tBuscar todos? Digite 1.\n\t\tBuscar apenas os que deram algum feedback? Digite 2.\n\t\tBuscar passageiros que fizeram mais viagens? Digite 3.", input => resolve(input)));
+		secondAnswer = await new Promise<string>(resolve => rl.question("\n\t\tVoltar? Digite 0.\n\t\tBuscar todos? Digite 1.\n\t\tBuscar apenas os que deram algum feedback? Digite 2.\n\t\tBuscar passageiros que fizeram mais viagens? Digite 3.\n\t\t", input => resolve(input)));
 		secondOption = parseInt(secondAnswer);
 		switch (secondOption) {
 		case 0:
@@ -158,10 +158,9 @@ async function menuGet(): Promise<void> {
 				console.error(error);
 			}
 			break;
-		}
 		case 3:
 			try {
-				const passengers = await getPassengersWithFeedback();
+				const passengers = await getPassengersWithMaxTravels();
 				passengers.forEach((passenger, index) => {
 					console.log(`\t\tPassageiro ${index}:\n\t\t\tId: ${passenger.id}\n\t\t\tNome: ${passenger.name}\n\t\t\tEmail: ${passenger.email}`);
 				});
@@ -169,6 +168,7 @@ async function menuGet(): Promise<void> {
 				console.error(error);
 			}
 			break;
+		}
 		break;
 	// Staff
 	case 4:
@@ -189,7 +189,7 @@ async function menuGet(): Promise<void> {
 			break;
 		case 2:
 			try {
-				const staff = await getStaff();
+				const staff = await getDriversOnlyOfBus();
 				staff.forEach((employee, index) => {
 					console.log(`\t\tFuncionário ${index}:\n\t\t\tId: ${employee.id}\n\t\t\tNome: ${employee.name}\n\t\t\tCargo: ${employee.position_id}`);
 				});
@@ -199,7 +199,7 @@ async function menuGet(): Promise<void> {
 			break;
 		case 3:
 			try {
-				const staff = await getStaff();
+				const staff = await getEmployeesWithLongTravels();
 				staff.forEach((employee, index) => {
 					console.log(`\t\tFuncionário ${index}:\n\t\t\tId: ${employee.id}\n\t\t\tNome: ${employee.name}\n\t\t\tCargo: ${employee.position_id}`);
 				});
@@ -228,7 +228,7 @@ async function menuGet(): Promise<void> {
 			break;
 		case 2:
 			try {
-				const vehicles = await getVehicles();
+				const vehicles = await getVehiclesWithMaxTravels();
 				vehicles.forEach((vehicle, index) => {
 					console.log(`\t\tVeículo ${index}:\n\t\t\tId: ${vehicle.id}\n\t\t\tMarca: ${vehicle.manufacturer}\n\t\t\tModelo: ${vehicle.model}\n\t\t\tAno: ${vehicle.year}\n\t\t\tCapacidade: ${vehicle.capacity}\n\t\t\tCategoria: ${vehicle.category_id}`);
 				});
@@ -238,7 +238,7 @@ async function menuGet(): Promise<void> {
 			break;
 		case 3:
 			try {
-				const vehicles = await getVehicles();
+				const vehicles = await getTrainsOfAllStations();
 				vehicles.forEach((vehicle, index) => {
 					console.log(`\t\tVeículo ${index}:\n\t\t\tId: ${vehicle.id}\n\t\t\tMarca: ${vehicle.manufacturer}\n\t\t\tModelo: ${vehicle.model}\n\t\t\tAno: ${vehicle.year}\n\t\t\tCapacidade: ${vehicle.capacity}\n\t\t\tCategoria: ${vehicle.category_id}`);
 				});

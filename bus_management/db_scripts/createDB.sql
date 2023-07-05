@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS "main"."payment" (
 
 CREATE TABLE IF NOT EXISTS "main"."staff" (
 	"id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-	"name" VARCHAR(50) NOT NULL,
+	"name" VARCHAR(50) UNIQUE NOT NULL,
 	"position_id" UUID NOT NULL,
 	"created_at" TIMESTAMP DEFAULT current_timestamp,
 	FOREIGN KEY ("position_id") REFERENCES "main"."staff_position"

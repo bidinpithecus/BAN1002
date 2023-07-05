@@ -213,18 +213,128 @@ export async function getLocationsOf(categoryId: string): Promise<Location[]> {
 		throw new Error("Error executing database query: " + error);
 	}
 }
-// id: string;
-// name: string;
-// location_start_id: string;
-// location_destiny_id: string;
-// distance: number;
-// created_at: Date;
+
 export async function getRoutesOf(categoryId: string): Promise<Route[]> {
 	try {
 		const routes = await sql<Route[]>`
 			SELECT main.route.id, main.route.name, main.route.location_start_id, main.route.location_destiny_id, main.route.distance, main.route.created_at, main.location.id AS locId, main.location.category_id FROM main.route JOIN main.location ON main.route.location_start_id = main.location.id WHERE main.location.category_id = ${categoryId}
 		`;
 		return routes;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getPassengersWithMaxTravels(): Promise<Passenger[]> {
+	try {
+		const passengers = await sql<Passenger[]>`
+			SELECT p.id, p.name, p.email, p.phone, p.created_at
+			FROM main.passenger AS p
+			INNER JOIN (
+			SELECT t.passenger_id, COUNT(t.passenger_id) AS cnt
+			FROM main.transportation AS t
+			GROUP BY t.passenger_id
+			) AS C ON p.id = C.passenger_id
+			WHERE C.cnt = (
+			SELECT MAX(cnt)
+			FROM (
+				SELECT COUNT(passenger_id) AS cnt
+				FROM main.transportation
+				GROUP BY passenger_id
+			) AS subquery
+			);
+		`;
+		return passengers;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getDriversOnlyOfBus(): Promise<Staff[]> {
+	try {
+		const staff = await sql<Staff[]>`
+			SELECT staff.id, staff.name, staff.position_id, staff.created_at FROM main.staff
+			JOIN main.staff_position ON main.staff.position_id = main.staff_position.id
+			JOIN main.staff_vehicle ON main.staff.id = main.staff_vehicle.staff_id
+			WHERE staff_position.name = 'Motorista' AND staff_vehicle.id NOT IN (
+			SELECT staff_vehicle.id FROM main.staff_vehicle
+			JOIN main.vehicle ON main.staff_vehicle.vehicle_id = main.vehicle.id
+			JOIN main.transport_category ON main.vehicle.category_id = main.transport_category.id
+			WHERE main.transport_category.name <> 'Ônibus'
+			);
+		`;
+		return staff;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getEmployeesWithLongTravels(): Promise<Staff[]> {
+	try {
+		const staff = await sql<Staff[]>`
+			SELECT staff.id, staff.name, staff.position_id, staff.created_at FROM main.staff
+			JOIN main.staff_position ON main.staff.position_id = main.staff_position.id
+			JOIN main.staff_vehicle ON main.staff.id = main.staff_vehicle.staff_id
+			WHERE staff_vehicle.id NOT IN(
+				SELECT staff_vehicle.id FROM main.staff_vehicle
+				JOIN main.vehicle ON main.staff_vehicle.vehicle_id = main.vehicle.id
+				JOIN main.vehicle_route ON main.vehicle.id = main.vehicle_route.vehicle_id
+				JOIN main.route ON main.vehicle_route.route_id = main.route.id
+				WHERE main.route.distance > 9
+			);
+		`;
+		return staff;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getVehiclesWithMaxTravels(): Promise<Vehicle[]> {
+	try {
+		const vehicles = await sql<Vehicle[]>`
+			SELECT v.id, v.category_id, v.manufacturer, v.model, v.year, v.capacity, v.created_at
+			FROM main.vehicle AS v
+			INNER JOIN (
+			SELECT t.vehicle_id, COUNT(t.vehicle_id) AS cnt
+			FROM main.transportation AS t
+			GROUP BY t.vehicle_id
+			) AS C ON v.id = C.vehicle_id
+			WHERE C.cnt = (
+			SELECT MAX(cnt)
+			FROM (
+				SELECT COUNT(vehicle_id) AS cnt
+				FROM main.transportation
+				GROUP BY vehicle_id
+			) AS subquery
+			);
+		`;
+		return vehicles;
+	} catch (error) {
+		throw new Error("Error executing database query: " + error);
+	}
+}
+
+export async function getTrainsOfAllStations(): Promise<Vehicle[]> {
+	try {
+		const vehicles = await sql<Vehicle[]>`
+			SELECT v.id, v.category_id, v.manufacturer, v.model, v.year, v.capacity, v.created_at
+			FROM main.vehicle AS v
+			WHERE v.category_id = (
+			SELECT id FROM main.transport_category WHERE name = 'Trem'
+			) AND NOT EXISTS (
+			SELECT *
+			FROM main.location AS l
+			WHERE l.is_station = TRUE AND l.category_id = (
+				SELECT id FROM main.transport_category WHERE name = 'Trem'
+			) AND NOT EXISTS (
+				SELECT *
+				FROM main.vehicle_route AS vr
+				JOIN main.route AS r ON vr.route_id = r.id
+				WHERE vr.vehicle_id = v.id AND (r.location_start_id = l.id OR r.location_destiny_id = l.id)
+			)
+			);
+		`;
+		return vehicles;
 	} catch (error) {
 		throw new Error("Error executing database query: " + error);
 	}
